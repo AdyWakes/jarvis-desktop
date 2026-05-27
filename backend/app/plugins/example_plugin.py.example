@@ -1,0 +1,29 @@
+"""Example plugin. Rename to `*.py` to enable it.
+
+Plugins live in `app/plugins/`. Each module may either:
+  * expose a top-level `TOOLS` iterable of `Tool` instances, or
+  * declare one or more `Tool` subclasses that take no constructor args.
+
+This example demonstrates the latter.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+from app.tools.base import Tool
+
+
+class EchoArgs(BaseModel):
+    message: str = Field(description="Text to echo back.")
+
+
+class EchoTool(Tool):
+    name = "echo"
+    description = "Return the message that was passed in. Useful for plugin sanity checks."
+    parameters_model = EchoArgs
+
+    async def run(self, message: str) -> dict[str, Any]:
+        return {"echoed": message}
