@@ -38,7 +38,10 @@ export function useChat() {
     setError(null);
     const ws = api.chatSocket();
     socketRef.current = ws;
-    ws.onopen = () => setStatus("open");
+    ws.onopen = () => {
+      setStatus("open");
+      setError(null);
+    };
     ws.onclose = () => setStatus("closed");
     ws.onerror = () => {
       setStatus("error");
