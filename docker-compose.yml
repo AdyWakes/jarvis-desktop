@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    image: jarvis-backend:dev
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_CHAT_MODEL=${OPENAI_CHAT_MODEL:-gpt-4o-mini}
+      - OPENAI_WHISPER_MODEL=${OPENAI_WHISPER_MODEL:-whisper-1}
+      - JARVIS_HOST=0.0.0.0
+      - JARVIS_PORT=8000
+      - JARVIS_CORS_ORIGINS=http://localhost:5173,http://localhost:8080
+      - JARVIS_DB_PATH=/app/data/jarvis.db
+      - JARVIS_BROWSER_HEADLESS=true
+    volumes:
+      - jarvis-data:/app/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://127.0.0.1:8000/health').status==200 else sys.exit(1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Frontend talks to the backend via the nginx /api/ proxy, so we leave
+        # this empty so requests stay same-origin.
+        VITE_API_BASE_URL: ""
+    image: jarvis-frontend:dev
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  jarvis-data:
